@@ -3,6 +3,7 @@ package org.onedatashare.server.service;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import org.apache.commons.lang.RandomStringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.onedatashare.module.globusapi.EndPoint;
 import org.onedatashare.module.globusapi.GlobusClient;
 import org.onedatashare.server.model.core.Credential;
@@ -55,6 +56,15 @@ public class UserService {
   }
 
   public GlobusClient getGlobusClientFromUser(User user){
+    GlobusClient oaucr = getGlobusClient(user);
+    if (oaucr != null) {
+      return oaucr;
+    }
+    return new GlobusClient();
+  }
+
+  @Nullable
+  private GlobusClient getGlobusClient(User user) {
     for (Credential credential : user.getCredentials().values()) {
       if (credential.type == Credential.CredentialType.OAUTH) {
         OAuthCredential oaucr = (OAuthCredential) credential;
@@ -63,7 +73,7 @@ public class UserService {
         }
       }
     }
-    return new GlobusClient();
+    return null;
   }
 
   public Mono<GlobusClient> getGlobusClient(String cookie){
@@ -74,30 +84,24 @@ public class UserService {
   public Mono<GlobusClient> getClient(String cookie){
     return getLoggedInUser(cookie)
             .map(user -> {
-              for (Credential credential : user.getCredentials().values()) {
-                if (credential.type == Credential.CredentialType.OAUTH) {
-                  OAuthCredential oaucr = (OAuthCredential) credential;
-                  if (oaucr.name.contains("GridFTP")) {
-                    return new GlobusClient(oaucr.token);
-                  }
-                }
-              }
+              GlobusClient oaucr = getGlobusClient(user);
+              if (oaucr != null) return oaucr;
               return new GlobusClient();
             });
   }
 
   public Mono<Boolean> resetPassword(String email, String password, String passwordConfirm, String authToken){
     return getUser(email).flatMap(user-> {
-      if(!password.equals(passwordConfirm)){
+      if (!password.equals(passwordConfirm)) {
         return Mono.error(new Exception("Password is not confirmed."));
-      }else if(user.getAuthToken() == null){
+      } else if(user.getAuthToken() == null) {
         return Mono.error(new Exception("Does not have Auth Token"));
-      }else if(user.getAuthToken().equals(authToken)){
+      } else if(user.getAuthToken().equals(authToken)) {
         user.setPassword(password);
         user.setAuthToken(null);
         userRepository.save(user).subscribe();
         return Mono.just(true);
-      }else{
+      } else {
         return Mono.error(new Exception("Wrong Token"));
       }
     });
@@ -105,11 +109,11 @@ public class UserService {
 
   public Mono<Boolean> resetPasswordWithOld(String cookie, String oldpassword, String newpassword, String passwordConfirm){
     return getLoggedInUser(cookie).flatMap(user-> {
-      if(!newpassword.equals(passwordConfirm)){
+      if (!newpassword.equals(passwordConfirm)) {
         return Mono.error(new Exception("Password is not confirmed."));
-      }else if(!user.checkPassword(oldpassword)){
+      } else if(!user.checkPassword(oldpassword)) {
         return Mono.error(new Exception("Old Password is incorrect."));
-      }else{
+      } else {
         user.setPassword(newpassword);
         System.out.println(user.checkPassword(newpassword));
         //cookieToUserLogin(cookie).hash = user.hash;
@@ -268,24 +272,20 @@ public class UserService {
    */
 
   public Mono<String> verifyCode(String email, String code){
-
     return getUser(email).flatMap(user-> {
       User.VerifyCode expectedCode = user.getCode();
-
-//      DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-//      System.out.println("new date "+dateFormat.format(new Date()));
-      if(expectedCode == null){
+      if(expectedCode == null) {
         return Mono.error(new Exception("code not set"));
-      }else if(expectedCode.expireDate.before(new Date())){
+      } else if(expectedCode.expireDate.before(new Date())) {
         return Mono.error(new Exception("code expired"));
-      }else if(expectedCode.code.equals(code)){
+      } else if(expectedCode.code.equals(code)) {
         user.setCode(null);
-        if(user.getAuthToken() == null){
+        if(user.getAuthToken() == null) {
           user.setAuthToken(code+User.salt(12));
         }
         userRepository.save(user).subscribe();
         return Mono.just(user.authToken);
-      }else{
+      } else {
         return Mono.error(new Exception("Code not match"));
       }
     });
@@ -339,9 +339,9 @@ public class UserService {
 
   public Mono<Object> isAdmin(String cookie){
     return getLoggedInUser(cookie).map(user ->{
-       if(user.isAdmin())
-         return Mono.just(true);
-       else
+       if(user.isAdmin()) {
+           return Mono.just(true);
+       }
          return Mono.error(new ForbiddenAction("Invalid Administrator"));
     });
   }
@@ -384,7 +384,7 @@ public class UserService {
   }
 
   public User.UserLogin cookieToUserLogin(String cookie) {
-    Map<String,String> map = new HashMap<String,String>();
+    Map<String,String> map = new HashMap<>();
     Set<Cookie> cookies = CookieDecoder.decode(cookie);
     for (Cookie c : cookies)
       map.put(c.getName(), c.getValue());
