@@ -8,12 +8,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 //@ContextConfiguration(classes = UserService.class)
 //@ActiveProfiles("test")
 public class UserServiceTest {
-  @Autowired
-  private UserService userService;
+    @Autowired
+    private UserService userService;
 
-  @Test
-  public void createUserTest() throws Exception {
+    @Test
+    public void createUserTest() throws Exception {
 //    User user = new User("vanditsa@buffalo.edu", "asdasd");
 //    userService.createUser(user).subscribe(System.out::println);
-  }
+    }
+
+    @Test
+    public void createUser_givenNothing_createsUser() {
+
+    }
+
+    @Test
+    public void getGlobusClient_givenGlobusClient_returnsGlobsuClient() {
+
+    }
+
+    @Test
+    public void removeIfExpired_givenExpiredObject_successfullyRemoves() {
+
+    }
 }
