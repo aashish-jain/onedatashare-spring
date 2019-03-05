@@ -1,16 +1,13 @@
 package org.onedatashare.server.service;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.onedatashare.server.model.core.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
-//@RunWith(SpringRunner.class)
-//@ContextConfiguration(classes = UserService.class)
-//@ActiveProfiles("test")
 public class UserServiceTest {
+
     @Autowired
     private UserService userService;
 
@@ -18,13 +15,7 @@ public class UserServiceTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
-    public void createUserTest() throws Exception {
-//    User user = new User("vanditsa@buffalo.edu", "asdasd");
-//    userService.createUser(user).subscribe(System.out::println);
-    }
-
-    @Test
-    public void createUser_givenBlankEmailAndPassword_throwsRuntimeExceptionAndDisplaysCorrectMessage() {
+    public void createUser_givenBlankEmailAndPassword_throwsRuntimeExceptionAndDisplaysCorrectMessage() throws Exception {
         thrown.expect(RuntimeException.class);
         thrown.expectMessage("No password was provided");
         User user = new User("","");
@@ -32,7 +23,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUser_givenRandomEmailAndBlankPassword_throwsRuntimeExceptionAndDisplaysCorrectMessage() {
+    public void createUser_givenRandomEmailAndBlankPassword_throwsRuntimeExceptionAndDisplaysCorrectMessage() throws Exception {
         thrown.expect(RuntimeException.class);
         thrown.expectMessage("No password was provided");
         User user = new User("ryandils@buffalo.edu","");
@@ -40,10 +31,15 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUser_givenBlankEmailAndRandomPassword_throwsNullPointerException() {
+    public void createUser_givenBlankEmailAndRandomPassword_throwsNullPointerException() throws Exception {
         thrown.expect(NullPointerException.class);
         User user = new User("","password");
         userService.createUser(user).subscribe();
+    }
+
+    @Test
+    public void createUser_givenRandomEmailAndPassword_noExceptionThrown() throws Exception {
+
     }
 
     @Test
