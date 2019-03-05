@@ -31,4 +31,29 @@ public class UserServiceTest {
     public void removeIfExpired_givenExpiredObject_successfullyRemoves() {
 
     }
+
+    @Test
+    public void verifyEmail_givenValidEmail_successfullyVerifiesEmail() {
+
+    }
+
+    @Test
+    public void verifyEmail_givenInvalidEmail_unsuccessfullyVerifiesEmail() {
+
+    }
+
+    @Test
+    public void isAdmin_givenAdmin_returnsTrue() {
+
+    }
+
+    @Test
+    public void isAdmin_givenSomeoneThatIsNotAdmin_returnsFalse() {
+
+    }
+
+    @Test
+    public void getGlobusClient_givenNoCredentials_returnsNull() {
+
+    }
 }
