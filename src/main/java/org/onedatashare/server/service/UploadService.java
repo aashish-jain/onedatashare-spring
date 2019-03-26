@@ -45,7 +45,6 @@ public class UploadService {
             userAction.dest = new UserActionResource();
             userAction.dest.id = googleDriveID;
 
-
             try {
                 if (directoryPath.endsWith("/")) {
                     userAction.dest.uri = directoryPath + URLEncoder.encode(fileName, "UTF-8");
@@ -55,8 +54,8 @@ public class UploadService {
 
                 ObjectMapper mapper = new ObjectMapper();
                 userAction.dest.credential = mapper.readValue(credential, UserActionCredential.class);
-                IdMap[] idms = mapper.readValue(idMap, IdMap[].class);
-                userAction.dest.map = new ArrayList<>(Arrays.asList(idms));
+                IdMap[] idMaps = mapper.readValue(idMap, IdMap[].class);
+                userAction.dest.map = new ArrayList<>(Arrays.asList(idMaps));
             } catch (Exception e) {
                 e.printStackTrace();
             }
