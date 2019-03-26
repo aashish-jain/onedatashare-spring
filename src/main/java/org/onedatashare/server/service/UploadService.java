@@ -39,7 +39,7 @@ public class UploadService {
             UserAction userAction = new UserAction();
             userAction.src = new UserActionResource();
             userAction.src.uri = "Upload";
-            LinkedBlockingQueue<Slice> uploadQueue = new LinkedBlockingQueue<Slice>();
+            LinkedBlockingQueue<Slice> uploadQueue = new LinkedBlockingQueue<>();
             userAction.src.uploader = new UploadCredential(uploadQueue, totalFileSize, fileName);
             System.out.println("total " + totalFileSize);
             userAction.dest = new UserActionResource();
