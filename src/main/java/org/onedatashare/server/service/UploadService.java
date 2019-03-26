@@ -29,7 +29,7 @@ public class UploadService {
     @Autowired
     ResourceServiceImpl resourceService;
 
-    private static Map<UUID, LinkedBlockingQueue<Slice>> ongoingUploads = new HashMap<UUID, LinkedBlockingQueue<Slice>>();
+    private static Map<UUID, LinkedBlockingQueue<Slice>> ongoingUploads = new HashMap<>();
 
     public Mono<Integer> uploadChunk(String cookie, UUID uuid, Mono<FilePart> filePart, String credential,
                                      String directoryPath, String fileName, Long totalFileSize, String googleDriveID, String idMap) {
