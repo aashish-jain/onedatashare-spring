@@ -32,7 +32,7 @@ public class UploadService {
     private static Map<UUID, LinkedBlockingQueue<Slice>> ongoingUploads = new HashMap<UUID, LinkedBlockingQueue<Slice>>();
 
     public Mono<Integer> uploadChunk(String cookie, UUID uuid, Mono<FilePart> filePart, String credential,
-                                     String directoryPath, String fileName, Long totalFileSize, String googledriveid, String idmap) {
+                                     String directoryPath, String fileName, Long totalFileSize, String googleDriveID, String idMap) {
         if (ongoingUploads.containsKey(uuid)) {
             return sendFilePart(filePart, ongoingUploads.get(uuid));
         } else {
@@ -43,7 +43,7 @@ public class UploadService {
             ua.src.uploader = new UploadCredential(uploadQueue, totalFileSize, fileName);
             System.out.println("total " + totalFileSize);
             ua.dest = new UserActionResource();
-            ua.dest.id = googledriveid;
+            ua.dest.id = googleDriveID;
 
 
             try {
@@ -55,7 +55,7 @@ public class UploadService {
 
                 ObjectMapper mapper = new ObjectMapper();
                 ua.dest.credential = mapper.readValue(credential, UserActionCredential.class);
-                IdMap[] idms = mapper.readValue(idmap, IdMap[].class);
+                IdMap[] idms = mapper.readValue(idMap, IdMap[].class);
                 ua.dest.map = new ArrayList<>(Arrays.asList(idms));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -71,22 +71,21 @@ public class UploadService {
     }
 
     public Mono<Integer> sendFilePart(Mono<FilePart> pfr, LinkedBlockingQueue<Slice> qugue) {
-
         return pfr.flatMapMany(fp -> fp.content())
-                .reduce(new ByteArrayOutputStream(), (acc, newbuf) -> {
-                    try {
-                        Slice slc = new Slice(newbuf.asByteBuffer());
-                        acc.write(slc.asBytes(), 0, slc.length());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return acc;
-                }).map(content -> {
-                    System.out.println("uploading" + content.size());
-                    Slice slc = new Slice(content.toByteArray());
-                    qugue.add(slc);
-                    return slc.length();
-                });
+        .reduce(new ByteArrayOutputStream(), (acc, newbuf) -> {
+            try {
+                Slice slc = new Slice(newbuf.asByteBuffer());
+                acc.write(slc.asBytes(), 0, slc.length());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return acc;
+        }).map(content -> {
+            System.out.println("uploading" + content.size());
+            Slice slc = new Slice(content.toByteArray());
+            qugue.add(slc);
+            return slc.length();
+        });
     }
 
     public Mono<Void> finishUpload(UUID uuid) {
