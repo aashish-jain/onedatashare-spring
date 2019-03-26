@@ -44,21 +44,7 @@ public class UploadService {
             System.out.println("total " + totalFileSize);
             userAction.dest = new UserActionResource();
             userAction.dest.id = googleDriveID;
-
-            try {
-                if (directoryPath.endsWith("/")) {
-                    userAction.dest.uri = directoryPath + URLEncoder.encode(fileName, "UTF-8");
-                } else {
-                    userAction.dest.uri = directoryPath + "/" + URLEncoder.encode(fileName, "UTF-8");
-                }
-
-                ObjectMapper mapper = new ObjectMapper();
-                userAction.dest.credential = mapper.readValue(credential, UserActionCredential.class);
-                IdMap[] idMaps = mapper.readValue(idMap, IdMap[].class);
-                userAction.dest.map = new ArrayList<>(Arrays.asList(idMaps));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            createMapOfIdsFromDirectory(credential, directoryPath, fileName, idMap, userAction);
             resourceService.submit(cookie, userAction).subscribe();
             return sendFilePart(filePart, uploadQueue).map(size -> {
                 if (size < totalFileSize) {
@@ -66,6 +52,23 @@ public class UploadService {
                 }
                 return size;
             });
+        }
+    }
+
+    private void createMapOfIdsFromDirectory(String credential, String directoryPath, String fileName, String idMap, UserAction userAction) {
+        try {
+            if (directoryPath.endsWith("/")) {
+                userAction.dest.uri = directoryPath + URLEncoder.encode(fileName, "UTF-8");
+            } else {
+                userAction.dest.uri = directoryPath + "/" + URLEncoder.encode(fileName, "UTF-8");
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            userAction.dest.credential = mapper.readValue(credential, UserActionCredential.class);
+            IdMap[] idMaps = mapper.readValue(idMap, IdMap[].class);
+            userAction.dest.map = new ArrayList<>(Arrays.asList(idMaps));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
