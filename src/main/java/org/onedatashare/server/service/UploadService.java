@@ -32,7 +32,7 @@ public class UploadService {
     private static Map<UUID, LinkedBlockingQueue<Slice>> ongoingUploads = new HashMap<UUID, LinkedBlockingQueue<Slice>>();
 
     public Mono<Integer> uploadChunk(String cookie, UUID uuid, Mono<FilePart> filePart, String credential,
-                                 String directoryPath, String fileName, Long totalFileSize, String googledriveid, String idmap) {
+                                     String directoryPath, String fileName, Long totalFileSize, String googledriveid, String idmap) {
         if (ongoingUploads.containsKey(uuid)) {
             return sendFilePart(filePart, ongoingUploads.get(uuid));
         } else {
@@ -41,23 +41,23 @@ public class UploadService {
             ua.src.uri = "Upload";
             LinkedBlockingQueue<Slice> uploadQueue = new LinkedBlockingQueue<Slice>();
             ua.src.uploader = new UploadCredential(uploadQueue, totalFileSize, fileName);
-            System.out.println("total "+totalFileSize);
+            System.out.println("total " + totalFileSize);
             ua.dest = new UserActionResource();
             ua.dest.id = googledriveid;
 
 
             try {
-                if(directoryPath.endsWith("/")) {
-                    ua.dest.uri = directoryPath+URLEncoder.encode(fileName,"UTF-8");
+                if (directoryPath.endsWith("/")) {
+                    ua.dest.uri = directoryPath + URLEncoder.encode(fileName, "UTF-8");
                 } else {
-                    ua.dest.uri = directoryPath+"/"+URLEncoder.encode(fileName,"UTF-8");
+                    ua.dest.uri = directoryPath + "/" + URLEncoder.encode(fileName, "UTF-8");
                 }
 
                 ObjectMapper mapper = new ObjectMapper();
                 ua.dest.credential = mapper.readValue(credential, UserActionCredential.class);
                 IdMap[] idms = mapper.readValue(idmap, IdMap[].class);
                 ua.dest.map = new ArrayList<>(Arrays.asList(idms));
-            }catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             resourceService.submit(cookie, ua).subscribe();
@@ -70,29 +70,27 @@ public class UploadService {
         }
     }
 
-    public Mono<Integer> sendFilePart(Mono<FilePart> pfr, LinkedBlockingQueue<Slice> qugue){
-
-        //ongoingUploads.get(uuid).onNext(pfr);
-
+    public Mono<Integer> sendFilePart(Mono<FilePart> pfr, LinkedBlockingQueue<Slice> qugue) {
 
         return pfr.flatMapMany(fp -> fp.content())
-                .reduce(new ByteArrayOutputStream(), (acc, newbuf)->{
-                    try
-                    {
+                .reduce(new ByteArrayOutputStream(), (acc, newbuf) -> {
+                    try {
                         Slice slc = new Slice(newbuf.asByteBuffer());
                         acc.write(slc.asBytes(), 0, slc.length());
-                    }catch(Exception e){}
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     return acc;
-        }).map(content ->  {
-            System.out.println("uploading"+content.size());
-            Slice slc = new Slice(content.toByteArray());
-            qugue.add(slc);
-            return slc.length();
-        });
+                }).map(content -> {
+                    System.out.println("uploading" + content.size());
+                    Slice slc = new Slice(content.toByteArray());
+                    qugue.add(slc);
+                    return slc.length();
+                });
     }
 
     public Mono<Void> finishUpload(UUID uuid) {
-        if(!ongoingUploads.containsKey(uuid)){
+        if (!ongoingUploads.containsKey(uuid)) {
             return Mono.error(null);
         }
         ongoingUploads.remove(uuid);
